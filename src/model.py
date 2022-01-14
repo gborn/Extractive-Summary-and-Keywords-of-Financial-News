@@ -1,4 +1,4 @@
-from transformers import TFAutoModelForSeq2SeqLM, AutoTokenizer
+from transformers import TFAutoModelForSeq2SeqLM, AutoModelForSeq2SeqLM, AutoTokenizer
 from sentence_transformers import SentenceTransformer
 from keybert import KeyBERT
 from transformers import pipeline 
@@ -6,9 +6,13 @@ import re
 
 class Model:
     def __init__(self, ):
-        # we use Google’s T5 model which was pre-trained on a multi-task mixed dataset (including CNN / Daily Mail)
+        # we use Google’s T5 model which was pre-trained on a multi-task mixed dataset.
         self.summarizer = TFAutoModelForSeq2SeqLM.from_pretrained("t5-base")
         self.tokenizer = AutoTokenizer.from_pretrained("t5-base")
+
+	# To generate title, we use AutoNLP model trained on Reuters dataset present in our data folder
+	self.title_tokenizer = AutoTokenizer.from_pretrained("gborn/autonlp-news-summarization-483413089")
+	self.title_model = AutoModelForSeq2SeqLM.from_pretrained("gborn/autonlp-news-summarization-483413089")
 
         # KeyBert uses BERT-embeddings and simple cosine similarity to find the sub-phrases in a document that are the most similar to the document itself.
         sentence_model = SentenceTransformer("all-MiniLM-L6-v2")
@@ -29,6 +33,14 @@ class Model:
         scores = [kw[1] for kw in keywords_with_scores]
         return keywords, scores
 
+    def get_title(self, text):
+	# The model eats a lot of memory, so we will use only first 1000 characters
+	text = text[:1000]
+	features = self.title_tokenizer(text, return_tensors='pt')
+	tokens = self.title_model.generate(input_ids=features['input_ids'])[0]
+	output = self.title_tokenizer.decode(tokens, skip_special_tokens=True)
+	return output.strip()
+
     def get_summary(self, text):
         # T5 uses a max_length of 512 so we cut the article to 512 tokens.
         inputs = self.tokenizer("summarize: " + text, return_tensors="tf", max_length=512)
@@ -38,10 +50,10 @@ class Model:
                         min_length=40, 
                         length_penalty=2.0, 
                         num_beams=4, 
-                        early_stopping=True
+                        early_stopping=True,
                     )
         
-        return self.tokenizer.decode(outputs[0])
+        return self.tokenizer.decode(outputs[0], skip_special_tokens=True)
 
     def clean_text(self, text):
         text = text.replace(u"\ufffd", "")
@@ -50,5 +62,5 @@ class Model:
         text = text.strip('\'"').replace("|","") 
         #replace non ascii characters
         text = re.sub('[^\\x00-\\xff]','', text)
-        text = text.replace("\\xe2","").replace("\\x80","").replace("\\x99","").replace("\\xf0","").replace("\\x9f","").replace("\\x98","").replace("\\xad","").replace("\\xa6","").replace("\\x9f","")
+        text = text.replace("\\xe2","").replace("\\x80","").replace("\\x99","").replace("\\xf0","").replace("\\x9f","").replace("\\x98","").replace("\xad","").replace("\\xa6","").replace("\\x9f","")
         return text

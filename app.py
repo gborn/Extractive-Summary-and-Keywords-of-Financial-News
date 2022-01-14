@@ -24,17 +24,21 @@ def main():
     if text.strip():
         label, score = model.get_sentiment(text)
         if label == 'POSITIVE':
-            st.write(f':white_check_mark: This article has a {label.lower()} sentiment. Confidence score: {score:.2f}')
+            st.write(f':simple_smile: This article has a {label.lower()} sentiment. Confidence score: {score:.2f}')
 
         else:
-            st.write(f':white_check_mark: This article has a {label.lower()} sentiment. Confidence score: {score:.2f}')
+            st.write(f':cry: This article has a {label.lower()} sentiment. Confidence score: {score:.2f}')
 
         keywords, scores = model.get_keywords(text, with_highlight=False)
-        st.subheader(f'Article is talking about following keywords:')
+        st.subheader(f'Suggested Keywords:')
         st.write(', '.join(keywords))
 
+	title = model.get_title(text)
+	st.subheader(f'Suggested Headline:')
+	st.write(title)
+
         summary = model.get_summary(text)
-        st.subheader("And here's Summary:")
+        st.subheader("And here's the abstract:")
         st.write(summary)
 
 if __name__ == '__main__':
