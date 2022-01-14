@@ -10,9 +10,9 @@ class Model:
         self.summarizer = TFAutoModelForSeq2SeqLM.from_pretrained("t5-base")
         self.tokenizer = AutoTokenizer.from_pretrained("t5-base")
 
-	# To generate title, we use AutoNLP model trained on Reuters dataset present in our data folder
-	self.title_tokenizer = AutoTokenizer.from_pretrained("gborn/autonlp-news-summarization-483413089")
-	self.title_model = AutoModelForSeq2SeqLM.from_pretrained("gborn/autonlp-news-summarization-483413089")
+        # To generate title, we use AutoNLP model trained on Reuters dataset present in our data folder
+        self.title_tokenizer = AutoTokenizer.from_pretrained("gborn/autonlp-news-summarization-483413089")
+        self.title_model = AutoModelForSeq2SeqLM.from_pretrained("gborn/autonlp-news-summarization-483413089")
 
         # KeyBert uses BERT-embeddings and simple cosine similarity to find the sub-phrases in a document that are the most similar to the document itself.
         sentence_model = SentenceTransformer("all-MiniLM-L6-v2")
@@ -34,12 +34,12 @@ class Model:
         return keywords, scores
 
     def get_title(self, text):
-	# The model eats a lot of memory, so we will use only first 1000 characters
-	text = text[:1000]
-	features = self.title_tokenizer(text, return_tensors='pt')
-	tokens = self.title_model.generate(input_ids=features['input_ids'])[0]
-	output = self.title_tokenizer.decode(tokens, skip_special_tokens=True)
-	return output.strip()
+        # The model eats a lot of memory, so we will use only first 1000 characters
+        text = text[:1000]
+        features = self.title_tokenizer(text, return_tensors='pt')
+        tokens = self.title_model.generate(input_ids=features['input_ids'])[0]
+        output = self.title_tokenizer.decode(tokens, skip_special_tokens=True)
+        return output.strip()
 
     def get_summary(self, text):
         # T5 uses a max_length of 512 so we cut the article to 512 tokens.
