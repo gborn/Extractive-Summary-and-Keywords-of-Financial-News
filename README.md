@@ -17,7 +17,7 @@ Bitcoin was last down more than 3% at $41,704 after touching $40,938, its lowest
 ![demo](data/demo/suggested_headline_abstract.png)
 
 ## Model Suggested Keywords:
-![demo](data/demo/suggested_keywords.png)
+![demo](data/demo/suggested keywords.png)
 
 
 
